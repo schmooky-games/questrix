@@ -14,6 +14,10 @@ export class QuestManager {
     registerTemplate(template: QuestTemplate): void {
       this.templates.set(template.id, template);
     }
+
+    getTemplate(name: string): void {
+      return this.templates[name]!; //! UNSAFE ADD ERROR HERE
+    }
   
     // Instance Management
     createInstance(templateId: string): QuestInstance {

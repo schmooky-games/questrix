@@ -1,53 +1,172 @@
-import { QuestTemplate, QuestInstance, TaskProgress, TaskCondition } from '@questrix/core';
+import { QuestManager, QuestTemplate, QuestChecker, NumericProgress } from '@questrix/core'; // Adjust import path
 
-describe('GoblinSlayerQuest', () => {
-  let questTemplate: QuestTemplate;
-  let questInstance: QuestInstance;
-  const now = new Date();
-  const tomorrow = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+describe('Scav Kill Quest', () => {
+  let questManager: QuestManager;
+  let killScavsQuest: QuestTemplate;
 
   beforeEach(() => {
-    // Create quest template object implementing QuestTemplate
-    questTemplate = {
-      id: 'goblin-slayer-quest',
-      name: 'Goblin Slayer',
-      description: 'Kill 3 normal goblins and 1 elite goblin',
+    // Setup fresh quest template and manager before each test
+    killScavsQuest = {
+      id: 'kill-scavs-quest',
+      name: 'Scav Hunter',
+      description: 'Kill 10 scavs in one raid',
+      createdAt: new Date(),
+      updatedAt: new Date(),
       tasks: [
         {
-          id: 'kill-normal-goblins',
-          name: 'Kill Normal Goblins',
-          description: 'Kill 3 normal goblins',
+          id: 'kill-scavs',
+          name: 'Kill Scavs',
+          description: 'Kill 10 scavs',
           progress: {
             type: 'numeric',
+            current: 0,
             min: 0,
-            max: 3,
-            current: 0
+            max: 10,
           },
           conditions: [
             {
-              type: 'enemy.killed',
-              checker: (event)=>{event.its('target.type').to.be('goblin') && event.its('target.rank').to.be('normal')}
-            }
-          ]
+              type: 'enemy-killed',
+              checker: new QuestChecker({
+                its: (path: string) => ({
+                  to: {
+                    be: (value: any) => path === 'target.type' && value === 'scav',
+                  },
+                }),
+              }),
+            },
+          ],
         },
+      ],
+      resetConditions: [
         {
-          id: 'kill-elite-goblin',
-          name: 'Kill Elite Goblin',
-          description: 'Kill 1 elite goblin',
-          progress: {
-            type: 'numeric',
-            minValue: 0,
-            maxValue: 1,
-            currentValue: 0
-          },
-          conditions: [
-            {
-              event: 'enemy.killed',
-              check: "event.its('target.type').to.be('goblin') && event.its('target.rank').to.be('elite')"
-            }
-          ]
-        }
-      ]
+          event: 'raid-ended',
+          checker: new QuestChecker({
+            its: (path: string) => ({
+              to: {
+                be: (value: any) => true,
+              },
+            }),
+          }),
+        },
+      ],
     };
+
+    questManager = new QuestManager();
+    questManager.registerTemplate(killScavsQuest);
+  });
+
+  test('should register quest template successfully', () => {
+    expect(questManager.getTemplate('kill-scavs-quest')).toBeDefined();
+    expect(questManager.getTemplate('kill-scavs-quest')).toEqual(killScavsQuest);
+  });
+
+  test('should create quest instance correctly', () => {
+    const instance = questManager.createInstance('kill-scavs-quest');
+    
+    expect(instance).toBeDefined();
+    expect(instance.id).toBe('kill-scavs-quest');
+    expect((instance.progress[0] as NumericProgress).current).toBe(0);
+  });
+
+  test('should increment progress when killing a scav', () => {
+    const instance = questManager.createInstance('kill-scavs-quest');
+    
+    questManager.handleEvent({
+      type: 'enemy-killed',
+      timestamp: new Date(),
+      data: {
+        target: {
+          type: 'scav',
+          location: { x: 100, y: 200 },
+        },
+      },
+    });
+
+    expect((instance.progress[0] as NumericProgress).current).toBe(1);
+  });
+
+  test('should not increment progress when killing non-scav enemy', () => {
+    const instance = questManager.createInstance('kill-scavs-quest');
+    
+    questManager.handleEvent({
+      type: 'enemy-killed',
+      timestamp: new Date(),
+      data: {
+        target: {
+          type: 'pmc', // Different enemy type
+          location: { x: 100, y: 200 },
+        },
+      },
+    });
+
+    expect((instance.progress[0] as NumericProgress).current).toBe(0);
+  });
+
+  test('should complete quest after killing 10 scavs', () => {
+    const instance = questManager.createInstance('kill-scavs-quest');
+    
+    // Simulate killing 10 scavs
+    for (let i = 0; i < 10; i++) {
+      questManager.handleEvent({
+        type: 'enemy-killed',
+        timestamp: new Date(),
+        data: {
+          target: {
+            type: 'scav',
+            location: { x: 100, y: 200 },
+          },
+        },
+      });
+    }
+
+    expect((instance.progress[0] as NumericProgress).current).toBe(10);
+    expect(instance.status === 'completed').toBe(true);
+  });
+
+  test('should reset progress when raid ends', () => {
+    const instance = questManager.createInstance('kill-scavs-quest');
+    
+    // Kill some scavs first
+    questManager.handleEvent({
+      type: 'enemy-killed',
+      timestamp: new Date(),
+      data: {
+        target: {
+          type: 'scav',
+          location: { x: 100, y: 200 },
+        },
+      },
+    });
+
+    expect((instance.progress[0] as NumericProgress).current).toBe(1);
+
+    // End the raid
+    questManager.handleEvent({
+      type: 'raid-ended',
+      timestamp: new Date(),
+      data: {},
+    });
+
+    expect((instance.progress[0] as NumericProgress).current).toBe(0);
+  });
+
+  test('should not exceed maximum progress', () => {
+    const instance = questManager.createInstance('kill-scavs-quest');
+    
+    // Simulate killing 12 scavs (more than required)
+    for (let i = 0; i < 12; i++) {
+      questManager.handleEvent({
+        type: 'enemy-killed',
+        timestamp: new Date(),
+        data: {
+          target: {
+            type: 'scav',
+            location: { x: 100, y: 200 },
+          },
+        },
+      });
+    }
+
+    expect((instance.progress[0] as NumericProgress).current).toBe(10);
   });
 });
