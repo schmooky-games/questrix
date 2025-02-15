@@ -1,11 +1,11 @@
 import { TaskProgress } from './progress';
-import { QuestCondition } from './condition';
+import { TaskCondition } from './condition';
 
 export interface QuestTask {
   id: string;
   name: string;
   description: string;
   progress: TaskProgress;
-  conditions: QuestCondition[];
+  conditions: TaskCondition[];
   metadata?: Record<string, unknown>;
 }

@@ -1,0 +1,18 @@
+{
+    "compilerOptions": {
+      "baseUrl": ".",
+      "paths": {
+        "@questrix/core": ["packages/core/src"]
+      },
+      "module": "commonjs",
+      "declaration": true,
+      "removeComments": true,
+      "emitDecoratorMetadata": true,
+      "experimentalDecorators": true,
+      "target": "es2017",
+      "sourceMap": true,
+      "outDir": "./dist",
+      "incremental": true,
+      "skipLibCheck": true
+    }
+  }

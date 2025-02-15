@@ -1,4 +1,4 @@
-import { QuestCondition, QuestEvent, QuestInstance, QuestTemplate, TaskProgress } from "../types";
+import { TaskCondition, QuestEvent, QuestInstance, QuestTemplate, TaskProgress } from "../types";
 import { QuestEventEmitter } from "./quest-event-emitter";
 
 export class QuestManager {
@@ -95,7 +95,7 @@ export class QuestManager {
       });
     }
   
-    private checkCondition<T>(condition: QuestCondition, event: QuestEvent<T>): boolean {
+    private checkCondition<T>(condition: TaskCondition, event: QuestEvent<T>): boolean {
       return condition.checker.its('type').to.be(event.type);
     }
   

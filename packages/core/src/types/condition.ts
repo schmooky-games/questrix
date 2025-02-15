@@ -1,6 +1,6 @@
 import { QuestChecker } from '../classes/quest-checker';
 
-export interface QuestCondition {
+export interface TaskCondition {
   type: string;
   checker: QuestChecker;
   metadata?: Record<string, unknown>;
