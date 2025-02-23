@@ -10,7 +10,8 @@
       "outDir": "./dist",
       "rootDir": "./src",
       "declaration": true,
-      "sourceMap": true
+      "sourceMap": true,
+      "experimentalDecorators": true
     },
     "include": ["src/**/*", "tests/**/*"],
     "exclude": ["node_modules", "dist"]

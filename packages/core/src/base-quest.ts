@@ -1,5 +1,6 @@
 import { QuestTask } from './quest-task';
 import { QuestTaskFilter } from './quest-task-filter';
+import { GameEvent } from './types';
 
 /**
  * Base class for all quests in the game

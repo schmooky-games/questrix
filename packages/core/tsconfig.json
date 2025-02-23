@@ -12,6 +12,6 @@
     "declaration": true,
     "sourceMap": true
   },
-  "include": ["src/**/*", "tests/**/*"],
-  "exclude": ["node_modules", "dist"]
+  "include": ["src/**/*"], // Only include src/ for build
+  "exclude": ["node_modules", "dist", "tests/**/*"] // Explicitly exclude tests/
 }

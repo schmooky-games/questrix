@@ -1,4 +1,5 @@
 import { QuestTaskFilter } from './quest-task-filter';
+import { GameEvent } from './types';
 
 /**
  * Individual task within a quest
